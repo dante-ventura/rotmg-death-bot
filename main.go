@@ -5,19 +5,21 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
+	"math/rand"
 	"net/http"
 	"os"
 	"regexp"
+	"strings"
 	"time"
 )
 
 type Config struct {
-	Players              []string   `json:"players"`
-	DiscordWebhook       string     `json:"discordWebhook"`
-	DiscordAvatarUrl     string     `json:"discordAvatarUrl"`
-	DiscordDeathMessages [][]string `json:"discordDeathMessages"`
-	TimeBetweenRequest   int        `json:"timeBetweenRequest"`
-	RequestUserAgent     string     `json:"requestUserAgent"`
+	Players              []string `json:"players"`
+	DiscordWebhook       string   `json:"discordWebhook"`
+	DiscordAvatarUrl     string   `json:"discordAvatarUrl"`
+	DiscordDeathMessages []string `json:"discordDeathMessages"`
+	TimeBetweenRequest   int      `json:"timeBetweenRequest"`
+	RequestUserAgent     string   `json:"requestUserAgent"`
 }
 
 type PlayerDeath struct {
@@ -43,6 +45,12 @@ func parseConfig(path string) {
 	}
 }
 
+func randomDeathMessage(user string) string {
+	randIdx := rand.Intn(len(globalConfig.DiscordDeathMessages))
+	msg := globalConfig.DiscordDeathMessages[randIdx]
+	return strings.Replace(msg, "%username%", user, -1)
+}
+
 func sendDiscordDeathMsg(playerDeath PlayerDeath) {
 	webhookBodyBytes := []byte(`
 		{
@@ -50,7 +58,7 @@ func sendDiscordDeathMsg(playerDeath PlayerDeath) {
 			"avatar_url": "` + globalConfig.DiscordAvatarUrl + `",
 			"embeds": [
 				{
-					"title": "` + playerDeath.username + ` Died",
+					"title": "` + randomDeathMessage(playerDeath.username) + `",
 					"url": "https://www.realmeye.com/graveyard-of-player/` + playerDeath.username + `",
 					"color": 16777215,
 					"fields": [
