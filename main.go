@@ -31,8 +31,8 @@ type PlayerDeath struct {
 var globalConfig Config
 var latestDeaths map[string]time.Time
 
-func parseConfig() {
-	data, err := os.ReadFile("config.json")
+func parseConfig(path string) {
+	data, err := os.ReadFile(path)
 	if err != nil {
 		panic(err)
 	}
@@ -199,7 +199,11 @@ func run() {
 }
 
 func main() {
-	parseConfig()
+	configPath := "config.json"
+	if len(os.Args) == 2 {
+		configPath = os.Args[1]
+	}
+	parseConfig(configPath)
 	setupDeathMap()
 	run()
 }
