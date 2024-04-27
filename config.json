@@ -1,6 +1,6 @@
 {
     "players": ["CHANGE ME"],
-    "discordWebhook": "CHANGE ME",
+    "discordWebhook": ["CHANGE ME"],
     "discordAvatarUrl": "CHANGE ME",
     "discordDeathMessages": [
         "%username% has died to no ones surprise",

@@ -15,7 +15,7 @@ import (
 
 type Config struct {
 	Players              []string `json:"players"`
-	DiscordWebhook       string   `json:"discordWebhook"`
+	DiscordWebhook       []string `json:"discordWebhook"`
 	DiscordAvatarUrl     string   `json:"discordAvatarUrl"`
 	DiscordDeathMessages []string `json:"discordDeathMessages"`
 	TimeBetweenRequest   int      `json:"timeBetweenRequest"`
@@ -84,31 +84,33 @@ func sendDiscordDeathMsg(playerDeath PlayerDeath) {
 	`)
 
 	client := http.Client{}
-	req, err := http.NewRequest(
-		"POST",
-		globalConfig.DiscordWebhook,
-		bytes.NewBuffer(webhookBodyBytes),
-	)
-	if err != nil {
-		fmt.Println("Error forming discord webhook request:", err)
-		return
+	for _, webhookUrl := range globalConfig.DiscordWebhook {
+		req, err := http.NewRequest(
+			"POST",
+			webhookUrl,
+			bytes.NewBuffer(webhookBodyBytes),
+		)
+		if err != nil {
+			fmt.Println("Error forming discord webhook request:", err)
+			return
+		}
+
+		defer req.Body.Close()
+		req.Header.Add("Content-Type", "application/json")
+
+		resp, err := client.Do(req)
+		if err != nil {
+			fmt.Println("Error requesting discord webhook:", err)
+			return
+		}
+
+		if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
+			fmt.Println("Error requesting discord webhook, got response code:", resp.StatusCode)
+			return
+		}
+
+		defer resp.Body.Close()
 	}
-
-	defer req.Body.Close()
-	req.Header.Add("Content-Type", "application/json")
-
-	resp, err := client.Do(req)
-	if err != nil {
-		fmt.Println("Error requesting discord webhook:", err)
-		return
-	}
-
-	if resp.StatusCode != http.StatusNoContent && resp.StatusCode != http.StatusOK {
-		fmt.Println("Error requesting discord webhook, got response code:", resp.StatusCode)
-		return
-	}
-
-	defer resp.Body.Close()
 }
 
 func setupDeathMap() {
